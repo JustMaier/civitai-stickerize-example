@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+
+/* Establish height chain for flex layouts */
+html,
+body {
+	height: 100%;
+}
+
+/* Stickerize Design System */
+@theme {
+	/* Primary Colors */
+	/* Primary pink updated from #E91E8C to #C91977 for WCAG AA compliance (4.5:1 contrast ratio) */
+	--color-pink: #C91977;
+	--color-purple: #8B5CF6;
+	--color-gold: #F5D547;
+
+	/* Background & Surface */
+	--color-background: #FDF2F8;
+	--color-surface: #FFFFFF;
+
+	/* Text */
+	--color-text-primary: #1F2937;
+	/* Text secondary updated from #6B7280 to #4B5563 for improved readability */
+	--color-text-secondary: #4B5563;
+
+	/* Border */
+	--color-border: #E5E7EB;
+
+	/* Font Family - System sans-serif stack */
+	--font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+		'Segoe UI Symbol', 'Noto Color Emoji';
+}

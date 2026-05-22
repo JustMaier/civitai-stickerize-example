@@ -1,0 +1,42 @@
+node_modules
+package-lock.json
+yarn.lock
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# App storage (generated images)
+/storage
+
+# Local SQLite database
+sqlite.db
+*.db-journal
+
+# Visual testing screenshots
+.screenshots/
+.browser/sessions
+.browser/storage
+.browser/profiles
+
+# Claude Code workspace
+.claude/
+.agents/
