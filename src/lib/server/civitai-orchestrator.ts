@@ -156,7 +156,7 @@ export async function generateImageViaCivitai(
 
     const final = isTerminal(submitted)
       ? submitted
-      : await pollWorkflow(client, workflowId, { timeoutMs: 60_000 });
+      : await pollWorkflow(client, workflowId, { timeoutMs: 300_000 });
 
     if (final.status !== 'succeeded') {
       throw new Error(`Civitai workflow ${final.status}: ${workflowId}`);

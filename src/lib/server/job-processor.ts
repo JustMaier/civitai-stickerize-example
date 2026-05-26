@@ -40,12 +40,20 @@ const MAX_CONCURRENT_JOBS_PER_USER = 8;
 export async function recoverStuckJobs(): Promise<number> {
   const staleThreshold = new Date(Date.now() - JOB_STALE_MS);
 
+  // Find jobs stuck in 'processing' state OR 'queued' with attempts > 0
+  // (the latter means a retry was scheduled but never executed, e.g. server crashed)
   const stuckJobs = await db
-    .select({ id: generationJobs.id })
+    .select({ id: generationJobs.id, status: generationJobs.status })
     .from(generationJobs)
     .where(
       and(
-        eq(generationJobs.status, 'processing'),
+        or(
+          eq(generationJobs.status, 'processing'),
+          and(
+            eq(generationJobs.status, 'queued'),
+            sql`${generationJobs.attempts} > 0`
+          )
+        ),
         lt(generationJobs.updatedAt, staleThreshold)
       )
     );
@@ -57,15 +65,22 @@ export async function recoverStuckJobs(): Promise<number> {
   console.log(`[Job Recovery] Found ${stuckJobs.length} stuck job(s), resetting and restarting...`);
 
   for (const job of stuckJobs) {
-    await db.update(generationJobs)
-      .set({
-        status: 'queued',
-        error: 'Recovered from stuck processing state',
-        updatedAt: new Date()
-      })
-      .where(eq(generationJobs.id, job.id));
+    if (job.status === 'processing') {
+      await db.update(generationJobs)
+        .set({
+          status: 'queued',
+          error: 'Recovered from stuck processing state',
+          updatedAt: new Date()
+        })
+        .where(eq(generationJobs.id, job.id));
+    } else {
+      // Already queued — just update timestamp so it gets picked up
+      await db.update(generationJobs)
+        .set({ updatedAt: new Date() })
+        .where(eq(generationJobs.id, job.id));
+    }
 
-    console.log(`[Job Recovery] Reset job ${job.id} to queued, restarting...`);
+    console.log(`[Job Recovery] Restarting stuck job ${job.id} (was ${job.status})...`);
 
     // Restart processing (fire-and-forget)
     processJob(job.id).catch(err =>
@@ -211,6 +226,13 @@ export async function processJob(jobId: string): Promise<JobResult> {
           updatedAt: new Date()
         })
         .where(eq(generationJobs.id, jobId));
+
+      // Schedule retry after a brief delay (avoids hammering on transient failures)
+      setTimeout(() => {
+        processJob(jobId).catch(err =>
+          console.error(`[Job Retry] Failed to retry job ${jobId}:`, err)
+        );
+      }, 5_000);
 
       return { success: false, error: `Attempt ${currentAttempt} failed: ${message}. Will retry.` };
     }
