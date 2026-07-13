@@ -59,6 +59,8 @@ Fill in `.env`:
 | `CIVITAI_API_TOKEN` | one of two | Personal Civitai API key. Used for users who haven't connected their Civitai account — Buzz debits from this key's owner. https://civitai.com/user/account → API Keys |
 | `GOOGLE_AI_API_KEY` | one of two | Falls back to Gemini image generation when `CIVITAI_API_TOKEN` is unset. https://aistudio.google.com/app/apikey |
 | `BASE_URL` | no | Defaults to `http://localhost:5173`. Used to build the OAuth callback URL — match what you registered with Civitai. |
+| `CIVITAI_AUTH_URL` | no | Defaults to `https://auth.civitai.com`. The auth hub that serves the OAuth endpoints (authorize / token / revoke). Override for a local Civitai checkout. |
+| `CIVITAI_BASE_URL` | no | Defaults to `https://civitai.com`. The main app that serves `/api/v1/me` and the Buzz balance. Not the OAuth endpoints — those are on `CIVITAI_AUTH_URL`. |
 | `LLM_MODEL` | no | Defaults to `anthropic/claude-opus-4.5`. Any vision-capable OpenRouter model works. |
 | `IMAGE_GEN_COST_CENTS` | no | Flat cents recorded per gen when not using Civitai Buzz |
 | `IMAGE_OPTIMIZATION_*` | no | WebP/AVIF compression on output images |

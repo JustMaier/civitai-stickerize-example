@@ -70,6 +70,7 @@ function requireConfig(): {
   clientId: string;
   clientSecret: string;
   sessionSecret: string;
+  authUrl: string;
   baseUrl: string;
   orchestratorUrl: string;
   appUrl: string;
@@ -81,6 +82,9 @@ function requireConfig(): {
     clientId: env.OAUTH_CIVITAI_CLIENT_ID!,
     clientSecret: env.OAUTH_CIVITAI_CLIENT_SECRET!,
     sessionSecret: env.CIVITAI_SESSION_SECRET!,
+    // OAuth endpoints (authorize/token/revoke) live on the auth hub; /api/v1/me and
+    // the buzz tRPC procedure still live on the main app (see baseUrl).
+    authUrl: env.CIVITAI_AUTH_URL || 'https://auth.civitai.com',
     baseUrl: env.CIVITAI_BASE_URL || 'https://civitai.com',
     orchestratorUrl: env.CIVITAI_ORCHESTRATOR_URL || 'https://orchestration.civitai.com',
     appUrl: env.BASE_URL || 'http://localhost:5173',
@@ -107,7 +111,7 @@ export function getCivitaiRedirectUri(): string {
 export function buildCivitaiAuthorizeUrl(state: string, codeChallenge: string): string {
   const cfg = requireConfig();
   return buildAuthorizeUrl({
-    baseUrl: cfg.baseUrl,
+    baseUrl: cfg.authUrl,
     clientId: cfg.clientId,
     redirectUri: getCivitaiRedirectUri(),
     scope: CIVITAI_REQUESTED_SCOPES,
@@ -160,7 +164,7 @@ export function consumeCivitaiOAuthState(
 export async function exchangeCivitaiCode(code: string, codeVerifier: string): Promise<OAuthTokens> {
   const cfg = requireConfig();
   return sdkExchangeCode({
-    baseUrl: cfg.baseUrl,
+    baseUrl: cfg.authUrl,
     clientId: cfg.clientId,
     clientSecret: cfg.clientSecret,
     redirectUri: getCivitaiRedirectUri(),
@@ -172,7 +176,7 @@ export async function exchangeCivitaiCode(code: string, codeVerifier: string): P
 export async function refreshCivitaiTokens(refreshTokenValue: string): Promise<OAuthTokens> {
   const cfg = requireConfig();
   return sdkRefreshToken({
-    baseUrl: cfg.baseUrl,
+    baseUrl: cfg.authUrl,
     clientId: cfg.clientId,
     clientSecret: cfg.clientSecret,
     refreshToken: refreshTokenValue,
@@ -182,7 +186,7 @@ export async function refreshCivitaiTokens(refreshTokenValue: string): Promise<O
 export async function revokeCivitaiToken(token: string): Promise<void> {
   const cfg = requireConfig();
   return sdkRevokeToken({
-    baseUrl: cfg.baseUrl,
+    baseUrl: cfg.authUrl,
     clientId: cfg.clientId,
     clientSecret: cfg.clientSecret,
     token,
